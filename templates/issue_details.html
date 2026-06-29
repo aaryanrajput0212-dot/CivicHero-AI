@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% set iss = dict(issue) %}
+{% block title %}{{ iss.title[:60] }} — CivicHero AI{% endblock %}
+
+{% block content %}
+{% set status_colors = {'open':'red','in_progress':'yellow','resolved':'green','closed':'gray'} %}
+{% set priority_colors = {'critical':'red','high':'yellow','medium':'blue','low':'gray'} %}
+
+<div class="p-6 max-w-5xl mx-auto space-y-5">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-sm text-muted" data-aos="fade-up">
+    <a href="/" class="hover:text-primary transition-colors">Home</a>
+    <i data-lucide="chevron-right" class="w-3 h-3"></i>
+    <a href="/issues" class="hover:text-primary transition-colors">Issues</a>
+    <i data-lucide="chevron-right" class="w-3 h-3"></i>
+    <span class="text-gray-900 font-500">#{{ iss.id }}</span>
+  </nav>
+
+  <div class="grid lg:grid-cols-3 gap-5">
+
+    <!-- Left: Main Content -->
+    <div class="lg:col-span-2 space-y-5">
+
+      <!-- Issue Header Card -->
+      <div class="bg-white rounded-xl2 border border-border shadow-card p-6" data-aos="fade-up">
+        <div class="flex items-start justify-between gap-4 mb-4">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="status-badge status-{{ iss.status }}">{{ iss.status.replace('_',' ').title() }}</span>
+            <span class="priority-badge priority-{{ iss.priority }}">{{ iss.priority.title() }} Priority</span>
+            {% if iss.verified %}<span class="inline-flex items-center gap-1 text-xs font-600 bg-primary-bg text-primary px-2 py-1 rounded-full">✅ AI Verified</span>{% endif %}
+          </div>
+          <span class="text-xs text-muted flex-shrink-0">#{{ iss.id }}</span>
+        </div>
+
+        <h1 class="font-display text-xl font-800 text-gray-900 mb-3 leading-snug">{{ iss.title }}</h1>
+
+        <div class="flex flex-wrap gap-4 text-sm text-muted mb-5">
+          <span class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i>{{ iss.location }}</span>
+          <span class="flex items-center gap-1.5"><i data-lucide="tag" class="w-3.5 h-3.5"></i>{{ iss.category }}</span>
+          <span class="flex items-center gap-1.5"><i data-lucide="user" class="w-3.5 h-3.5"></i>{{ iss.reporter }}</span>
+          <span class="flex items-center gap-1.5"><i data-lucide="calendar" class="w-3.5 h-3.5"></i>{{ iss.created_at[:10] }}</span>
+          <span class="flex items-center gap-1.5"><i data-lucide="eye" class="w-3.5 h-3.5"></i>{{ iss.views }} views</span>
+        </div>
+
+        {% if iss.image_path %}
+        <img src="/static/uploads/{{ iss.image_path }}" alt="Issue Photo"
+             class="w-full rounded-xl object-cover max-h-72 mb-5 border border-border">
+        {% endif %}
+        {% if iss.video_path %}
+        <video src="/static/uploads/{{ iss.video_path }}" controls
+               class="w-full rounded-xl max-h-64 mb-5 border border-border bg-black"></video>
+        {% endif %}
+
+        <p class="text-gray-700 text-sm leading-relaxed">{{ iss.description }}</p>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-3 mt-5 pt-5 border-t border-border flex-wrap">
+          <button onclick="handleUpvote({{ iss.id }}, this)"
+            class="btn-outline inline-flex items-center gap-2 hover:bg-primary hover:text-white hover:border-primary transition-all">
+            <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+            <span id="upvote-count-{{ iss.id }}">{{ iss.upvotes }}</span> Upvotes
+          </button>
+          <button onclick="showToast('You are now following this issue','success')"
+            class="btn-outline inline-flex items-center gap-2">
+            <i data-lucide="bell" class="w-4 h-4"></i>
+            Follow
+          </button>
+          <button onclick="shareIssue()"
+            class="btn-outline inline-flex items-center gap-2">
+            <i data-lucide="share-2" class="w-4 h-4"></i>
+            Share
+          </button>
+          {% if iss.status != 'resolved' %}
+          <button onclick="escalateIssue({{ iss.id }})"
+            class="btn-outline border-danger text-danger hover:bg-danger hover:text-white inline-flex items-center gap-2 ml-auto">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+            Escalate
+          </button>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Map -->
+      {% if iss.lat and iss.lng and iss.lat != 0 %}
+      <div class="bg-white rounded-xl2 border border-border shadow-card overflow-hidden" data-aos="fade-up">
+        <div class="px-5 py-4 border-b border-border flex items-center gap-2">
+          <i data-lucide="map" class="w-4 h-4 text-primary"></i>
+          <h2 class="font-600 text-gray-900 text-sm">Issue Location</h2>
+        </div>
+        <div id="detail-map" class="w-full h-56"></div>
+      </div>
+      {% endif %}
+
+      <!-- Comments -->
+      <div class="bg-white rounded-xl2 border border-border shadow-card p-5" data-aos="fade-up">
+        <h2 class="font-600 text-gray-900 mb-4 flex items-center gap-2">
+          <i data-lucide="message-circle" class="w-4 h-4 text-primary"></i>
+          Community Comments ({{ comments|length }})
+        </h2>
+
+        {% if comments %}
+        <div class="space-y-4 mb-5">
+          {% for c in comments %}
+          {% set cm = dict(c) %}
+          <div class="flex gap-3">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary-DEFAULT flex items-center justify-center text-white font-700 text-xs flex-shrink-0">{{ cm.author[0] }}</div>
+            <div class="flex-1 bg-surface rounded-xl p-3">
+              <div class="flex items-center justify-between mb-1">
+                <span class="font-600 text-sm text-gray-900">{{ cm.author }}</span>
+                <span class="text-xs text-muted">{{ cm.created_at[:10] }}</span>
+              </div>
+              <p class="text-sm text-gray-700">{{ cm.comment }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary-DEFAULT flex items-center justify-center text-white font-700 text-xs flex-shrink-0">A</div>
+          <div class="flex-1 flex gap-2">
+            <input type="text" id="comment-input" class="form-input flex-1 text-sm"
+              placeholder="Add a comment or update…"
+              onkeydown="if(event.key==='Enter') submitComment({{ iss.id }})">
+            <button onclick="submitComment({{ iss.id }})" class="btn-primary text-sm px-4">Post</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Sidebar -->
+    <div class="space-y-5">
+
+      <!-- AI Analysis -->
+      <div class="bg-gradient-to-br from-accent to-secondary-dark rounded-xl2 p-5 text-white" data-aos="fade-up">
+        <div class="flex items-center gap-2 mb-3">
+          <i data-lucide="sparkles" class="w-4 h-4 text-yellow-300"></i>
+          <span class="text-xs font-700 uppercase tracking-wider text-yellow-300">Gemini AI Analysis</span>
+        </div>
+        <p class="text-sm opacity-90 leading-relaxed mb-4">{{ iss.ai_summary or 'AI analysis pending…' }}</p>
+        <div class="space-y-2">
+          <div class="bg-white/10 rounded-xl p-3">
+            <p class="text-xs opacity-70 mb-1">Responsible Department</p>
+            <p class="font-600 text-sm">{{ iss.ai_department }}</p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3">
+            <p class="text-xs opacity-70 mb-1">Recommended Action</p>
+            <p class="font-500 text-sm">{{ iss.ai_action or 'Investigate and resolve promptly' }}</p>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-white/10 rounded-xl p-3">
+              <p class="text-xs opacity-70 mb-1">Est. Resolution</p>
+              <p class="font-600 text-sm">{{ iss.ai_eta }}</p>
+            </div>
+            <div class="bg-white/10 rounded-xl p-3">
+              <p class="text-xs opacity-70 mb-1">Confidence</p>
+              <p class="font-600 text-sm">{{ iss.ai_confidence }}%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Update Status -->
+      <div class="bg-white rounded-xl2 border border-border shadow-card p-5" data-aos="fade-up">
+        <h3 class="font-600 text-gray-900 mb-3 flex items-center gap-2 text-sm">
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-primary"></i>
+          Update Status
+        </h3>
+        <select id="status-select" class="form-input text-sm mb-3">
+          <option value="open"        {{ 'selected' if iss.status=='open' }}>🔴 Open</option>
+          <option value="in_progress" {{ 'selected' if iss.status=='in_progress' }}>🟡 In Progress</option>
+          <option value="resolved"    {{ 'selected' if iss.status=='resolved' }}>🟢 Resolved</option>
+          <option value="closed"      {{ 'selected' if iss.status=='closed' }}>⚪ Closed</option>
+        </select>
+        <button onclick="updateStatus({{ iss.id }})" class="btn-primary w-full text-sm">Update Status</button>
+      </div>
+
+      <!-- Issue Timeline -->
+      <div class="bg-white rounded-xl2 border border-border shadow-card p-5" data-aos="fade-up">
+        <h3 class="font-600 text-gray-900 mb-4 flex items-center gap-2 text-sm">
+          <i data-lucide="git-branch" class="w-4 h-4 text-primary"></i>
+          Timeline
+        </h3>
+        <div class="relative">
+          <div class="absolute left-3 top-2 bottom-2 w-0.5 bg-border"></div>
+          <div class="space-y-4">
+            {% for tl in timeline %}
+            {% set t = dict(tl) %}
+            <div class="flex gap-4 relative">
+              <div class="w-6 h-6 rounded-full bg-primary-bg border-2 border-primary flex items-center justify-center flex-shrink-0 z-10">
+                <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+              </div>
+              <div class="flex-1 pb-1">
+                <p class="text-sm font-500 text-gray-900">{{ t.event }}</p>
+                <p class="text-xs text-muted mt-0.5">{{ t.actor }} · {{ t.created_at[:16] }}</p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="bg-white rounded-xl2 border border-border shadow-card p-5" data-aos="fade-up">
+        <h3 class="font-600 text-gray-900 mb-3 text-sm">Issue Stats</h3>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between"><span class="text-muted">Upvotes</span><span class="font-600">{{ iss.upvotes }}</span></div>
+          <div class="flex justify-between"><span class="text-muted">Views</span><span class="font-600">{{ iss.views }}</span></div>
+          <div class="flex justify-between"><span class="text-muted">AI Confidence</span><span class="font-600">{{ iss.ai_confidence }}%</span></div>
+          <div class="flex justify-between"><span class="text-muted">Severity</span><span class="priority-badge priority-{{ iss.ai_severity }} text-xs">{{ iss.ai_severity.title() }}</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // Map
+  {% if iss.lat and iss.lng and iss.lat != 0 %}
+  (function() {
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    document.head.appendChild(s);
+    const l = document.createElement('link');
+    l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(l);
+    s.onload = () => {
+      const map = L.map('detail-map').setView([{{ iss.lat }}, {{ iss.lng }}], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map);
+      const colors = { critical:'#EF4444', high:'#F59E0B', medium:'#3B82F6', low:'#22C55E', resolved:'#16A34A' };
+      const color = '{{ iss.status }}' === 'resolved' ? colors.resolved : (colors['{{ iss.priority }}'] || '#3B82F6');
+      const icon = L.divIcon({
+        html: `<div style="background:${color};width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.3)"></div>`,
+        iconSize:[32,32], iconAnchor:[16,32], className:''
+      });
+      L.marker([{{ iss.lat }}, {{ iss.lng }}], {icon}).addTo(map).bindPopup('<b>{{ iss.title[:50] }}</b><br>{{ iss.location }}').openPopup();
+    };
+  })();
+  {% endif %}
+
+  // Upvote
+  async function handleUpvote(id, btn) {
+    btn.disabled = true;
+    const res  = await fetch(`/api/upvote/${id}`, { method: 'POST' });
+    const data = await res.json();
+    document.getElementById('upvote-count-' + id).textContent = data.upvotes;
+    showToast('👍 Upvoted! Helping prioritize this issue.', 'success');
+    btn.classList.add('bg-primary','text-white','border-primary');
+  }
+
+  // Comment
+  async function submitComment(id) {
+    const input = document.getElementById('comment-input');
+    const txt   = input.value.trim();
+    if (!txt) { showToast('Please write a comment first','error'); return; }
+    const res = await fetch(`/api/comment/${id}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ author: 'Aaryan Kumar', comment: txt })
+    });
+    if ((await res.json()).success) {
+      input.value = '';
+      showToast('💬 Comment posted!', 'success');
+      setTimeout(() => location.reload(), 800);
+    }
+  }
+
+  // Status Update
+  async function updateStatus(id) {
+    const status = document.getElementById('status-select').value;
+    const res = await fetch(`/api/status/${id}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ status })
+    });
+    if ((await res.json()).success) {
+      showToast('✅ Status updated to ' + status.replace('_',' '), 'success');
+      setTimeout(() => location.reload(), 800);
+    }
+  }
+
+  // Escalate
+  function escalateIssue(id) {
+    updateStatus(id);
+    showToast('🚨 Escalated to senior department officer!', 'success');
+  }
+
+  // Share
+  function shareIssue() {
+    if (navigator.share) {
+      navigator.share({ title: '{{ iss.title[:60] }}', url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      showToast('🔗 Link copied to clipboard!', 'success');
+    }
+  }
+
+  lucide.createIcons();
+</script>
+{% endblock %}

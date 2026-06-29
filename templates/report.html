@@ -1,0 +1,494 @@
+{% extends "base.html" %}
+{% block title %}Report Issue — CivicHero AI{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-3xl mx-auto">
+
+  <!-- Header -->
+  <div class="mb-6" data-aos="fade-up">
+    <h1 class="font-display text-2xl font-800 text-gray-900 mb-1">Report a Community Issue</h1>
+    <p class="text-gray-500 text-sm">AI will automatically analyze, categorize, and route your report to the right department.</p>
+  </div>
+
+  <!-- Progress Steps -->
+  <div class="flex items-center gap-0 mb-8" data-aos="fade-up" data-aos-delay="50">
+    {% for num, label in [('1','Issue Details'), ('2','Location & Media'), ('3','Review & Submit')] %}
+    <div class="flex items-center {{ 'flex-1' if not loop.last else '' }}">
+      <div class="flex items-center gap-2">
+        <div class="step-circle" id="step-circle-{{ num }}">{{ num }}</div>
+        <span class="text-sm font-600 hidden sm:block" id="step-label-{{ num }}" style="color:#94A3B8">{{ label }}</span>
+      </div>
+      {% if not loop.last %}
+      <div class="flex-1 h-0.5 bg-border mx-3" id="step-line-{{ num }}"></div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- SINGLE FORM wrapping all steps -->
+  <form id="report-form" action="/report" method="POST" enctype="multipart/form-data">
+
+    <!-- ══ STEP 1 ══ -->
+    <div id="step-1" class="space-y-5">
+
+      <!-- Category -->
+      <div class="bg-white rounded-xl2 border border-border shadow-card p-6" data-aos="fade-up" data-aos-delay="100">
+        <h2 class="font-600 text-gray-900 mb-4 flex items-center gap-2">
+          <i data-lucide="tag" class="w-4 h-4 text-primary"></i>
+          Issue Category <span class="text-red-500">*</span>
+        </h2>
+        <!-- Hidden field that gets value when button clicked -->
+        <input type="hidden" name="category" id="category-input" value="{{ form_data.get('category','') }}">
+        <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+          {% for cat, icon in [('Pothole','🛣️'),('Water','💧'),('Electricity','⚡'),('Sewage','🌊'),('Garbage','🗑️'),('Parks','🌳'),('Construction','🏗️'),('Streetlight','💡'),('Other','⚠️')] %}
+          <button type="button" class="cat-btn" onclick="selectCategory(this,'{{ cat }}')" data-cat="{{ cat }}"
+            {% if form_data.get('category') == cat %}style="border-color:#16A34A;background:#F0FDF4;color:#16A34A"{% endif %}>
+            <div class="text-2xl mb-1">{{ icon }}</div>
+            <div class="text-xs font-600">{{ cat }}</div>
+          </button>
+          {% endfor %}
+        </div>
+        <p id="cat-error" class="text-xs text-red-500 mt-2 hidden">Please select a category</p>
+      </div>
+
+      <!-- Title + Description + Priority -->
+      <div class="bg-white rounded-xl2 border border-border shadow-card p-6 space-y-4" data-aos="fade-up" data-aos-delay="120">
+        <h2 class="font-600 text-gray-900 flex items-center gap-2">
+          <i data-lucide="file-text" class="w-4 h-4 text-primary"></i>
+          Issue Details
+        </h2>
+
+        <div>
+          <label class="form-label">Issue Title <span class="text-red-500">*</span></label>
+          <input type="text" name="title" id="issue-title" class="form-input"
+            placeholder="e.g. Large pothole near bus stop on MG Road"
+            value="{{ form_data.get('title','') }}" required maxlength="200">
+          <p class="text-xs text-muted mt-1">Be specific — include street name and landmarks</p>
+        </div>
+
+        <div>
+          <label class="form-label">Detailed Description <span class="text-red-500">*</span></label>
+          <textarea name="description" id="issue-desc" class="form-input min-h-[120px] resize-y"
+            placeholder="Describe the issue in detail — size, severity, duration, impact on residents, any accidents caused…"
+            required>{{ form_data.get('description','') }}</textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="form-label">Priority Level</label>
+            <select name="priority" class="form-input">
+              <option value="critical">🔴 Critical — Immediate danger</option>
+              <option value="high">🟡 High — Significant problem</option>
+              <option value="medium" selected>🔵 Medium — Moderate issue</option>
+              <option value="low">⚪ Low — Minor concern</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Reporter Name</label>
+            <input type="text" name="reporter" class="form-input"
+              value="{{ current_user.name if current_user else '' }}" placeholder="Your name">
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button type="button" onclick="goStep(2)"
+          class="btn-primary inline-flex items-center gap-2">
+          Next: Location & Media
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 2 ══ -->
+    <div id="step-2" class="hidden space-y-5">
+
+      <!-- Location -->
+      <div class="bg-white rounded-xl2 border border-border shadow-card p-6" data-aos="fade-up">
+        <h2 class="font-600 text-gray-900 mb-4 flex items-center gap-2">
+          <i data-lucide="map-pin" class="w-4 h-4 text-primary"></i>
+          Location <span class="text-red-500">*</span>
+        </h2>
+
+        <div class="flex gap-3 mb-4">
+          <div class="flex-1 relative">
+            <i data-lucide="search" class="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input type="text" name="location" id="location-input" class="form-input pl-9"
+              placeholder="Enter address or landmark…"
+              value="{{ form_data.get('location','') }}" required>
+          </div>
+          <button type="button" onclick="detectLocation()"
+            class="btn-outline inline-flex items-center gap-2 flex-shrink-0 text-sm">
+            <i data-lucide="crosshair" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">My Location</span>
+          </button>
+        </div>
+
+        <div id="report-map" class="w-full h-64 rounded-xl bg-gray-100 border border-border overflow-hidden">
+          <div class="flex items-center justify-center h-full text-gray-400">
+            <div class="text-center">
+              <i data-lucide="map" class="w-8 h-8 mx-auto mb-2 text-primary animate-pulse"></i>
+              <p class="text-sm font-500">Map loading…</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <div>
+            <label class="form-label text-xs">Latitude (auto)</label>
+            <input type="text" name="lat" id="lat-input" class="form-input text-sm bg-surface"
+              value="{{ form_data.get('lat','') }}" placeholder="Auto-detected" readonly>
+          </div>
+          <div>
+            <label class="form-label text-xs">Longitude (auto)</label>
+            <input type="text" name="lng" id="lng-input" class="form-input text-sm bg-surface"
+              value="{{ form_data.get('lng','') }}" placeholder="Auto-detected" readonly>
+          </div>
+        </div>
+      </div>
+
+      <!-- Media Upload -->
+      <div class="bg-white rounded-xl2 border border-border shadow-card p-6 space-y-5" data-aos="fade-up">
+        <h2 class="font-600 text-gray-900 flex items-center gap-2">
+          <i data-lucide="camera" class="w-4 h-4 text-primary"></i>
+          Photo & Video Evidence
+          <span class="text-xs text-muted font-400">(optional but recommended)</span>
+        </h2>
+
+        <!-- Image -->
+        <div>
+          <label class="form-label">Photo <span class="text-xs text-muted font-400">— AI analyzes severity from image</span></label>
+          <label class="upload-zone cursor-pointer block" id="img-zone">
+            <input type="file" name="image" id="img-input" accept="image/*" class="hidden" onchange="previewImage(this)">
+            <div id="img-placeholder">
+              <i data-lucide="image" class="w-10 h-10 mx-auto mb-3 text-muted"></i>
+              <p class="font-600 text-gray-700 mb-1">Drop photo here or click to upload</p>
+              <p class="text-xs text-muted">PNG, JPG, WEBP up to 10MB</p>
+            </div>
+            <img id="img-preview" class="hidden w-full h-44 object-cover rounded-xl" alt="Preview">
+          </label>
+        </div>
+
+        <!-- Video -->
+        <div>
+          <label class="form-label">Video <span class="text-xs text-muted font-400">— optional</span></label>
+          <label class="upload-zone cursor-pointer block" id="vid-zone">
+            <input type="file" name="video" id="vid-input" accept="video/*" class="hidden" onchange="previewVideo(this)">
+            <div id="vid-placeholder">
+              <i data-lucide="video" class="w-10 h-10 mx-auto mb-3 text-muted"></i>
+              <p class="font-600 text-gray-700 mb-1">Drop video here or click to upload</p>
+              <p class="text-xs text-muted">MP4, MOV, WEBM up to 50MB</p>
+            </div>
+            <video id="vid-preview" class="hidden w-full h-44 rounded-xl" controls></video>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex justify-between">
+        <button type="button" onclick="goStep(1)" class="btn-outline inline-flex items-center gap-2">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+        </button>
+        <button type="button" onclick="goStep(3)" class="btn-primary inline-flex items-center gap-2">
+          Next: Review <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3 ══ -->
+    <div id="step-3" class="hidden space-y-5">
+
+      <!-- AI Preview Card -->
+      <div class="bg-gradient-to-br from-accent to-secondary-dark rounded-xl2 p-6 text-white" data-aos="fade-up">
+        <div class="flex items-center gap-2 mb-3">
+          <i data-lucide="sparkles" class="w-4 h-4 text-yellow-300"></i>
+          <span class="text-xs font-700 uppercase tracking-wider text-yellow-300">Gemini AI Pre-Analysis</span>
+        </div>
+        <p class="text-sm text-white/70 mb-4">Full analysis runs after submission. Preview based on your input:</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-white/10 rounded-xl p-3">
+            <p class="text-xs text-white/60 mb-1">Detected Category</p>
+            <p class="font-600 text-sm" id="preview-category">—</p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3">
+            <p class="text-xs text-white/60 mb-1">Est. Priority</p>
+            <p class="font-600 text-sm" id="preview-priority">—</p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3">
+            <p class="text-xs text-white/60 mb-1">Routing To</p>
+            <p class="font-600 text-sm" id="preview-dept">Municipal Corporation</p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3">
+            <p class="text-xs text-white/60 mb-1">Est. Resolution</p>
+            <p class="font-600 text-sm" id="preview-eta">3-5 days</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Review -->
+      <div class="bg-white rounded-xl2 border border-border shadow-card p-6" data-aos="fade-up">
+        <h2 class="font-600 text-gray-900 mb-4 flex items-center gap-2">
+          <i data-lucide="check-square" class="w-4 h-4 text-primary"></i>
+          Review Your Report
+        </h2>
+        <div class="space-y-3 text-sm divide-y divide-border">
+          <div class="flex gap-3 py-2.5"><span class="text-muted w-28 flex-shrink-0">Category</span><span class="font-500 text-gray-900" id="review-category">—</span></div>
+          <div class="flex gap-3 py-2.5"><span class="text-muted w-28 flex-shrink-0">Title</span><span class="font-500 text-gray-900" id="review-title">—</span></div>
+          <div class="flex gap-3 py-2.5"><span class="text-muted w-28 flex-shrink-0">Location</span><span class="font-500 text-gray-900" id="review-location">—</span></div>
+          <div class="flex gap-3 py-2.5"><span class="text-muted w-28 flex-shrink-0 flex-shrink-0">Description</span><span class="font-500 text-gray-900 line-clamp-3" id="review-desc">—</span></div>
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center">
+        <button type="button" onclick="goStep(2)" class="btn-outline inline-flex items-center gap-2">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+        </button>
+        <button type="submit" id="submit-btn" class="btn-primary inline-flex items-center gap-2 px-8">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          Submit Report
+        </button>
+      </div>
+    </div>
+
+  </form><!-- END FORM -->
+</div>
+
+<script>
+// ── Step Navigation ──────────────────────────────
+let currentStep = 1;
+
+function goStep(n) {
+  // Validate step 1 before moving forward
+  if (n > 1 && currentStep === 1) {
+    if (!validateStep1()) return;
+  }
+  if (n === 3) buildReview();
+
+  // Hide all, show target
+  [1,2,3].forEach(i => {
+    document.getElementById('step-' + i).classList.toggle('hidden', i !== n);
+  });
+  currentStep = n;
+
+  // Update progress UI
+  [1,2,3].forEach(i => {
+    const circle = document.getElementById('step-circle-' + i);
+    const label  = document.getElementById('step-label-' + i);
+    if (i < n) {
+      circle.className = 'step-circle step-done';
+      circle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-3 h-3"><polyline points="20 6 9 17 4 12"/></svg>`;
+    } else if (i === n) {
+      circle.className = 'step-circle step-active';
+      circle.textContent = i;
+    } else {
+      circle.className = 'step-circle';
+      circle.textContent = i;
+    }
+    if (label) {
+      label.style.color = i === n ? '#16A34A' : (i < n ? '#16A34A' : '#94A3B8');
+      label.style.fontWeight = i === n ? '700' : '600';
+    }
+    if (i < 3) {
+      const line = document.getElementById('step-line-' + i);
+      if (line) line.style.background = i < n ? '#16A34A' : '#E2E8F0';
+    }
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Init map when entering step 2
+  if (n === 2) setTimeout(initReportMap, 100);
+}
+
+function validateStep1() {
+  const cat   = document.getElementById('category-input').value;
+  const title = document.getElementById('issue-title').value.trim();
+  const desc  = document.getElementById('issue-desc').value.trim();
+
+  if (!cat) {
+    document.getElementById('cat-error').classList.remove('hidden');
+    showToast('⚠️ Please select a category', 'error');
+    return false;
+  }
+  document.getElementById('cat-error').classList.add('hidden');
+
+  if (!title) {
+    showToast('⚠️ Please enter an issue title', 'error');
+    document.getElementById('issue-title').focus();
+    return false;
+  }
+  if (!desc) {
+    showToast('⚠️ Please add a description', 'error');
+    document.getElementById('issue-desc').focus();
+    return false;
+  }
+  return true;
+}
+
+function buildReview() {
+  const deptMap = {
+    Pothole:'PWD – Roads Division', Water:'Jal Nigam / Water Board',
+    Electricity:'DISCOM – Electricity Board', Sewage:'Municipal Corp – Sanitation',
+    Garbage:'Sanitation Department', Parks:'Parks & Gardens Dept',
+    Construction:'Town Planning Authority', Streetlight:'Municipal Lighting Division', Other:'Municipal Corporation'
+  };
+  const etaMap = { critical:'24-48 hours', high:'3-5 days', medium:'1-2 weeks', low:'2-4 weeks' };
+
+  const cat      = document.getElementById('category-input').value || '—';
+  const priority = document.querySelector('select[name=priority]')?.value || 'medium';
+
+  document.getElementById('review-category').textContent  = cat;
+  document.getElementById('review-title').textContent     = document.getElementById('issue-title').value;
+  document.getElementById('review-location').textContent  = document.getElementById('location-input').value || 'Not set';
+  document.getElementById('review-desc').textContent      = document.getElementById('issue-desc').value;
+  document.getElementById('preview-category').textContent = cat;
+  document.getElementById('preview-priority').textContent = priority.charAt(0).toUpperCase() + priority.slice(1);
+  document.getElementById('preview-dept').textContent     = deptMap[cat] || 'Municipal Corporation';
+  document.getElementById('preview-eta').textContent      = etaMap[priority] || '3-5 days';
+}
+
+// ── Category Selection ───────────────────────────
+function selectCategory(btn, cat) {
+  document.querySelectorAll('.cat-btn').forEach(b => {
+    b.style.borderColor = '';
+    b.style.background  = '';
+    b.style.color       = '';
+  });
+  btn.style.borderColor = '#16A34A';
+  btn.style.background  = '#F0FDF4';
+  btn.style.color       = '#16A34A';
+  document.getElementById('category-input').value = cat;
+  document.getElementById('cat-error').classList.add('hidden');
+}
+
+// ── Map ──────────────────────────────────────────
+let reportMap = null, reportMarker = null;
+
+function initReportMap() {
+  if (reportMap) return; // already init
+  const mapEl = document.getElementById('report-map');
+  if (!mapEl) return;
+
+  function setupMap() {
+    reportMap = L.map('report-map').setView([12.9716, 77.5946], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap', maxZoom: 19
+    }).addTo(reportMap);
+
+    const icon = L.divIcon({
+      html: `<div style="background:#16A34A;width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.3)"></div>`,
+      iconSize:[28,28], iconAnchor:[14,28], className:''
+    });
+
+    reportMarker = L.marker([12.9716, 77.5946], { draggable: true, icon })
+      .addTo(reportMap)
+      .bindPopup('📍 Drag to exact issue location').openPopup();
+
+    reportMarker.on('dragend', e => {
+      const pos = e.target.getLatLng();
+      setCoords(pos.lat, pos.lng);
+      reverseGeocode(pos.lat, pos.lng);
+    });
+
+    reportMap.on('click', e => {
+      reportMarker.setLatLng(e.latlng);
+      setCoords(e.latlng.lat, e.latlng.lng);
+      reverseGeocode(e.latlng.lat, e.latlng.lng);
+    });
+  }
+
+  if (typeof L !== 'undefined') {
+    setupMap();
+  } else {
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    document.head.appendChild(s);
+    const l = document.createElement('link');
+    l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(l);
+    s.onload = setupMap;
+  }
+}
+
+function setCoords(lat, lng) {
+  document.getElementById('lat-input').value = lat.toFixed(6);
+  document.getElementById('lng-input').value = lng.toFixed(6);
+}
+
+function detectLocation() {
+  if (!navigator.geolocation) { showToast('Geolocation not supported', 'error'); return; }
+  showToast('📡 Detecting your location…', 'info');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const { latitude: lat, longitude: lng } = pos.coords;
+    setCoords(lat, lng);
+    if (reportMap && reportMarker) {
+      reportMarker.setLatLng([lat, lng]);
+      reportMap.setView([lat, lng], 16);
+    }
+    reverseGeocode(lat, lng);
+    showToast('📍 Location detected!', 'success');
+  }, () => showToast('Could not get location — please type address', 'error'));
+}
+
+async function reverseGeocode(lat, lng) {
+  try {
+    const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+    const data = await res.json();
+    if (data.display_name) {
+      document.getElementById('location-input').value = data.display_name.split(',').slice(0,3).join(', ');
+    }
+  } catch(e) {}
+}
+
+// ── Media Preview ────────────────────────────────
+function previewImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('img-preview');
+    const placeholder = document.getElementById('img-placeholder');
+    preview.src = e.target.result;
+    preview.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+  };
+  reader.readAsDataURL(file);
+  showToast('📸 Photo ready for AI analysis', 'success');
+}
+
+function previewVideo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const preview = document.getElementById('vid-preview');
+  const placeholder = document.getElementById('vid-placeholder');
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove('hidden');
+  placeholder.classList.add('hidden');
+  showToast('🎥 Video uploaded', 'success');
+}
+
+// ── Form Submit ──────────────────────────────────
+document.getElementById('report-form').addEventListener('submit', function(e) {
+  // Final validation
+  const cat      = document.getElementById('category-input').value;
+  const title    = document.getElementById('issue-title').value.trim();
+  const location = document.getElementById('location-input').value.trim();
+
+  if (!cat || !title || !location) {
+    e.preventDefault();
+    showToast('⚠️ Please fill all required fields', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+  </svg> Submitting & AI Analyzing…`;
+});
+
+// Init step 1 on load
+goStep(1);
+lucide.createIcons();
+</script>
+{% endblock %}

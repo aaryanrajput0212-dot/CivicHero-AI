@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% block title %}Live Map — CivicHero AI{% endblock %}
+
+{% block content %}
+<div class="flex flex-col h-[calc(100vh-56px)]">
+
+  <!-- Header Bar -->
+  <div class="bg-white border-b border-border px-5 py-3 flex items-center gap-4 flex-shrink-0 z-10">
+    <div class="flex items-center gap-2">
+      <i data-lucide="map" class="w-4 h-4 text-primary"></i>
+      <h1 class="font-600 text-gray-900 text-sm">Live Issue Map — Bengaluru</h1>
+      <span class="flex items-center gap-1 text-xs font-600 bg-primary-bg text-primary px-2 py-0.5 rounded-full">
+        <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+        Live
+      </span>
+    </div>
+
+    <!-- Filter Chips -->
+    <div class="flex items-center gap-2 ml-4 flex-wrap">
+      <button onclick="filterMapBy('all')"         class="map-chip active" id="mc-all">All</button>
+      <button onclick="filterMapBy('critical')"    class="map-chip" id="mc-critical">🔴 Critical</button>
+      <button onclick="filterMapBy('high')"        class="map-chip" id="mc-high">🟡 High</button>
+      <button onclick="filterMapBy('in_progress')" class="map-chip" id="mc-in_progress">🔵 In Progress</button>
+      <button onclick="filterMapBy('resolved')"    class="map-chip" id="mc-resolved">🟢 Resolved</button>
+      <button onclick="filterMapBy('Pothole')"     class="map-chip" id="mc-Pothole">🛣️ Potholes</button>
+      <button onclick="filterMapBy('Water')"       class="map-chip" id="mc-Water">💧 Water</button>
+      <button onclick="filterMapBy('Electricity')" class="map-chip" id="mc-Electricity">⚡ Electricity</button>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="ml-auto flex items-center gap-4 text-xs">
+      <span class="flex items-center gap-1.5 font-600 text-red-600"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span><span id="count-critical">0</span> Critical</span>
+      <span class="flex items-center gap-1.5 font-600 text-yellow-600"><span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span><span id="count-high">0</span> High</span>
+      <span class="flex items-center gap-1.5 font-600 text-green-600"><span class="w-2.5 h-2.5 rounded-full bg-green-500"></span><span id="count-resolved">0</span> Resolved</span>
+    </div>
+  </div>
+
+  <!-- Map Container + Side Panel -->
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- Map -->
+    <div id="live-map" class="flex-1 relative z-0"></div>
+
+    <!-- Side Panel -->
+    <div class="w-72 bg-white border-l border-border flex flex-col overflow-hidden flex-shrink-0">
+      <div class="px-4 py-3 border-b border-border">
+        <p class="text-xs font-700 text-gray-900 uppercase tracking-wider">Issues Near You</p>
+      </div>
+      <div id="map-issue-list" class="flex-1 overflow-y-auto divide-y divide-border">
+        <!-- Populated by JS -->
+      </div>
+      <div class="px-4 py-3 border-t border-border">
+        <a href="/report" class="btn-primary w-full text-sm text-center inline-flex items-center justify-center gap-2">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          Report New Issue
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const ALL_ISSUES = {{ issues_json | safe }};
+
+const COLOR_MAP = {
+  critical: '#EF4444',
+  high:     '#F59E0B',
+  medium:   '#3B82F6',
+  low:      '#6B7280',
+  resolved: '#16A34A',
+};
+
+const CAT_ICON = {
+  Pothole:'🛣️', Water:'💧', Electricity:'⚡', Sewage:'🌊',
+  Garbage:'🗑️', Parks:'🌳', Construction:'🏗️', Streetlight:'💡', Other:'⚠️'
+};
+
+let mapInstance, allMarkers = [];
+
+// Load Leaflet
+(function() {
+  const s = document.createElement('script');
+  s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  document.head.appendChild(s);
+  const l = document.createElement('link');
+  l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  document.head.appendChild(l);
+  s.onload = initLiveMap;
+})();
+
+function initLiveMap() {
+  mapInstance = L.map('live-map', { zoomControl: true }).setView([12.9352, 77.6245], 12);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(mapInstance);
+
+  // Count stats
+  let criticalCount = 0, highCount = 0, resolvedCount = 0;
+
+  ALL_ISSUES.forEach(issue => {
+    if (!issue.lat || !issue.lng || (issue.lat === 0 && issue.lng === 0)) return;
+
+    const isResolved = issue.status === 'resolved';
+    const color = isResolved ? COLOR_MAP.resolved : (COLOR_MAP[issue.priority] || COLOR_MAP.medium);
+
+    if (issue.priority === 'critical' && !isResolved) criticalCount++;
+    else if (issue.priority === 'high' && !isResolved) highCount++;
+    if (isResolved) resolvedCount++;
+
+    const icon = L.divIcon({
+      html: `
+        <div style="position:relative;width:36px;height:36px">
+          <div style="
+            background:${color};
+            width:32px;height:32px;
+            border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);
+            border:3px solid white;
+            box-shadow:0 3px 12px rgba(0,0,0,0.25);
+            display:flex;align-items:center;justify-content:center;
+          ">
+            <span style="transform:rotate(45deg);font-size:11px;line-height:1">
+              ${issue.priority === 'critical' ? '!' : CAT_ICON[issue.category] || '•'}
+            </span>
+          </div>
+        </div>`,
+      iconSize: [36, 36],
+      iconAnchor: [16, 36],
+      className: '',
+    });
+
+    const popup = L.popup({ maxWidth: 260 }).setContent(`
+      <div style="font-family:Inter,sans-serif;padding:4px">
+        <div style="font-size:11px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
+          ${issue.priority.toUpperCase()} · ${issue.status.replace('_',' ').toUpperCase()}
+        </div>
+        <div style="font-weight:600;font-size:13px;color:#111827;margin-bottom:4px;line-height:1.3">${issue.title}</div>
+        <div style="font-size:11px;color:#6B7280;margin-bottom:8px">📍 ${issue.location}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+          <span style="background:${color}20;color:${color};font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px">${issue.category}</span>
+          <span style="background:#F1F5F9;color:#475569;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px">👍 ${issue.upvotes}</span>
+          ${issue.verified ? '<span style="background:#F0FDF4;color:#16A34A;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px">✅ AI Verified</span>' : ''}
+        </div>
+        <div style="font-size:11px;color:#374151;background:#F8FAFC;padding:6px 8px;border-radius:8px;margin-bottom:8px;border-left:3px solid ${color}">
+          🤖 ${(issue.ai_summary || 'AI analysis complete').substring(0, 90)}…
+        </div>
+        <a href="/issue/${issue.id}" style="display:block;text-align:center;background:${color};color:white;font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;text-decoration:none">
+          View Full Details →
+        </a>
+      </div>
+    `);
+
+    const marker = L.marker([issue.lat, issue.lng], { icon })
+      .addTo(mapInstance)
+      .bindPopup(popup);
+
+    marker._issueData  = issue;
+    marker._priority   = issue.priority;
+    marker._status     = issue.status;
+    marker._category   = issue.category;
+
+    marker.on('click', () => highlightSidePanel(issue.id));
+
+    allMarkers.push(marker);
+  });
+
+  // Update counts
+  document.getElementById('count-critical').textContent = criticalCount;
+  document.getElementById('count-high').textContent     = highCount;
+  document.getElementById('count-resolved').textContent = resolvedCount;
+
+  // Render side panel
+  renderSidePanel(ALL_ISSUES);
+
+  // Try to get user location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      L.circleMarker([lat, lng], {
+        radius: 10, fillColor: '#2563EB', color: 'white',
+        weight: 3, fillOpacity: 0.9
+      }).addTo(mapInstance).bindPopup('<b>📍 You are here</b>');
+      mapInstance.setView([lat, lng], 13);
+    });
+  }
+}
+
+function renderSidePanel(issues) {
+  const list = document.getElementById('map-issue-list');
+  const COLOR_MAP2 = { critical:'#EF4444', high:'#F59E0B', medium:'#3B82F6', low:'#6B7280' };
+  list.innerHTML = issues.slice(0, 30).map(i => `
+    <div id="side-item-${i.id}" class="px-4 py-3 hover:bg-surface cursor-pointer transition-colors"
+         onclick="focusMarker(${i.id})">
+      <div class="flex items-start gap-2">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0 mt-0.5" style="background:${(COLOR_MAP2[i.priority]||'#3B82F6')}20">
+          ${CAT_ICON[i.category] || '📋'}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-600 text-gray-900 line-clamp-2 leading-snug">${i.title.substring(0,60)}…</p>
+          <p class="text-xs text-muted mt-0.5 truncate">📍 ${i.location.substring(0,30)}</p>
+          <div class="flex items-center gap-1.5 mt-1">
+            <span style="background:${(COLOR_MAP2[i.priority]||'#3B82F6')}20;color:${COLOR_MAP2[i.priority]||'#3B82F6'};font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;text-transform:uppercase">${i.priority}</span>
+            <span style="font-size:9px;color:#94A3B8">👍 ${i.upvotes}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function focusMarker(id) {
+  const marker = allMarkers.find(m => m._issueData && m._issueData.id === id);
+  if (!marker) return;
+  mapInstance.setView(marker.getLatLng(), 16);
+  marker.openPopup();
+  // Highlight side item
+  document.querySelectorAll('[id^="side-item-"]').forEach(el => el.classList.remove('bg-primary-bg'));
+  const el = document.getElementById('side-item-' + id);
+  if (el) { el.classList.add('bg-primary-bg'); el.scrollIntoView({ block:'nearest', behavior:'smooth' }); }
+}
+
+function highlightSidePanel(id) {
+  document.querySelectorAll('[id^="side-item-"]').forEach(el => el.classList.remove('bg-primary-bg'));
+  const el = document.getElementById('side-item-' + id);
+  if (el) { el.classList.add('bg-primary-bg'); el.scrollIntoView({ block:'nearest', behavior:'smooth' }); }
+}
+
+let activeFilter = 'all';
+function filterMapBy(filter) {
+  document.querySelectorAll('.map-chip').forEach(c => c.classList.remove('active'));
+  const el = document.getElementById('mc-' + filter);
+  if (el) el.classList.add('active');
+  activeFilter = filter;
+
+  const filtered = [];
+  allMarkers.forEach(m => {
+    const d = m._issueData;
+    let show = false;
+    if (filter === 'all')                   show = true;
+    else if (filter === 'critical')         show = d.priority === 'critical' && d.status !== 'resolved';
+    else if (filter === 'high')             show = d.priority === 'high';
+    else if (filter === 'in_progress')      show = d.status === 'in_progress';
+    else if (filter === 'resolved')         show = d.status === 'resolved';
+    else                                    show = d.category === filter;
+
+    if (show) { mapInstance.addLayer(m); filtered.push(d); }
+    else       mapInstance.removeLayer(m);
+  });
+
+  renderSidePanel(filtered.length ? filtered : ALL_ISSUES.filter(i => {
+    if (filter === 'all') return true;
+    if (filter === 'critical') return i.priority === 'critical';
+    if (filter === 'resolved') return i.status === 'resolved';
+    return i.category === filter;
+  }));
+}
+</script>
+
+<style>
+.map-chip {
+  padding: 4px 12px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 100px;
+  background: white;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #64748B;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.map-chip:hover { border-color: #16A34A; color: #16A34A; }
+.map-chip.active { background: #16A34A; color: white; border-color: #16A34A; }
+</style>
+{% endblock %}

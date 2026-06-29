@@ -1,0 +1,92 @@
+{% extends "auth/auth_base.html" %}
+{% block title %}Login — CivicHero AI{% endblock %}
+
+{% block form %}
+<h2 class="font-display text-3xl font-800 text-gray-900 mb-1">Welcome back</h2>
+<p class="text-gray-500 text-sm mb-8">Sign in to your CivicHero account</p>
+
+<form method="POST" action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" id="login-form">
+
+  <!-- Email -->
+  <div class="mb-4">
+    <label class="block text-sm font-600 text-gray-700 mb-2">Email Address</label>
+    <div class="input-wrap">
+      <i data-lucide="mail" class="input-icon w-4 h-4"></i>
+      <input type="email" name="email" value="{{ email }}"
+        class="form-input" placeholder="you@example.com" required autocomplete="email">
+    </div>
+  </div>
+
+  <!-- Password -->
+  <div class="mb-2">
+    <label class="block text-sm font-600 text-gray-700 mb-2">Password</label>
+    <div class="input-wrap">
+      <i data-lucide="lock" class="input-icon w-4 h-4"></i>
+      <input type="password" name="password" id="pw-login"
+        class="form-input" placeholder="••••••••" required autocomplete="current-password">
+      <button type="button" class="input-icon-right" data-toggle-pw="pw-login">
+        <i data-lucide="eye" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Remember + Forgot -->
+  <div class="flex items-center justify-between mb-6">
+    <label class="flex items-center gap-2 cursor-pointer">
+      <input type="checkbox" name="remember" class="w-4 h-4 accent-green-600 rounded">
+      <span class="text-sm text-gray-600">Remember me</span>
+    </label>
+    <a href="/forgot-password" class="text-sm text-primary font-600 hover:underline">Forgot password?</a>
+  </div>
+
+  <!-- Submit -->
+  <button type="submit" class="btn-primary" id="login-btn">
+    Sign In
+  </button>
+
+</form>
+
+<!-- Demo credentials -->
+<div class="mt-5 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+  <p class="text-xs font-700 text-blue-700 mb-2 flex items-center gap-1.5">
+    <i data-lucide="info" class="w-3.5 h-3.5"></i>
+    Demo Credentials
+  </p>
+  <p class="text-xs text-blue-600 font-500">📧 demo@civichero.ai</p>
+  <p class="text-xs text-blue-600 font-500 mt-0.5">🔑 demo123</p>
+  <button type="button" onclick="fillDemo()" class="mt-2 text-xs text-blue-700 font-700 underline">Click to fill automatically</button>
+</div>
+
+<!-- Divider -->
+<div class="flex items-center gap-3 my-6">
+  <div class="flex-1 h-px bg-border"></div>
+  <span class="text-xs text-muted font-500">OR</span>
+  <div class="flex-1 h-px bg-border"></div>
+</div>
+
+<!-- Register Link -->
+<p class="text-center text-sm text-gray-600">
+  Don't have an account?
+  <a href="/register" class="text-primary font-700 hover:underline ml-1">Create one free</a>
+</p>
+
+<script>
+function fillDemo() {
+  document.querySelector('input[name=email]').value = 'demo@civichero.ai';
+  document.querySelector('input[name=password]').value = 'demo123';
+  showToast('✅ Demo credentials filled — click Sign In!', '#16A34A');
+}
+
+document.getElementById('login-form').addEventListener('submit', function() {
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:flex;align-items:center;justify-content:center;gap:8px"><svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Signing in…</span>';
+});
+
+// Quick re-enable if validation fails
+setTimeout(() => {
+  const btn = document.getElementById('login-btn');
+  if (btn && btn.disabled) { btn.disabled = false; btn.textContent = 'Sign In'; }
+}, 4000);
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}404 — Page Not Found{% endblock %}
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[70vh] text-center p-6">
+  <div class="text-8xl mb-6">🏙️</div>
+  <h1 class="font-display text-4xl font-800 text-gray-900 mb-3">404</h1>
+  <p class="text-gray-500 text-lg mb-2">Page not found</p>
+  <p class="text-gray-400 text-sm mb-8 max-w-sm">The page you're looking for doesn't exist or has been moved.</p>
+  <div class="flex items-center gap-3">
+    <a href="/" class="btn-primary inline-flex items-center gap-2">
+      <i data-lucide="home" class="w-4 h-4"></i> Back to Home
+    </a>
+    <a href="/issues" class="btn-outline inline-flex items-center gap-2">
+      <i data-lucide="list" class="w-4 h-4"></i> View Issues
+    </a>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+{% endblock %}

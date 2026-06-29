@@ -1,0 +1,139 @@
+{% extends "auth/auth_base.html" %}
+{% block title %}Create Account — CivicHero AI{% endblock %}
+
+{% block form %}
+<h2 class="font-display text-3xl font-800 text-gray-900 mb-1">Create your account</h2>
+<p class="text-gray-500 text-sm mb-7">Join 1,340+ citizens making Bengaluru better</p>
+
+<form method="POST" action="/register" id="reg-form">
+
+  <!-- Name -->
+  <div class="mb-4">
+    <label class="block text-sm font-600 text-gray-700 mb-2">Full Name</label>
+    <div class="input-wrap">
+      <i data-lucide="user" class="input-icon w-4 h-4"></i>
+      <input type="text" name="name" class="form-input"
+        placeholder="Aaryan Kumar" required autocomplete="name" minlength="2">
+    </div>
+  </div>
+
+  <!-- Email -->
+  <div class="mb-4">
+    <label class="block text-sm font-600 text-gray-700 mb-2">Email Address</label>
+    <div class="input-wrap">
+      <i data-lucide="mail" class="input-icon w-4 h-4"></i>
+      <input type="email" name="email" class="form-input"
+        placeholder="you@example.com" required autocomplete="email">
+    </div>
+  </div>
+
+  <!-- Password -->
+  <div class="mb-2">
+    <label class="block text-sm font-600 text-gray-700 mb-2">Password</label>
+    <div class="input-wrap">
+      <i data-lucide="lock" class="input-icon w-4 h-4"></i>
+      <input type="password" name="password" id="pw-reg"
+        class="form-input" placeholder="Min. 6 characters" required
+        minlength="6" autocomplete="new-password" oninput="checkStrength(this.value)">
+      <button type="button" class="input-icon-right" data-toggle-pw="pw-reg">
+        <i data-lucide="eye" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <!-- Strength meter -->
+    <div class="flex gap-1 mt-2" id="strength-bars">
+      <div class="strength-bar flex-1 bg-gray-200" id="s1"></div>
+      <div class="strength-bar flex-1 bg-gray-200" id="s2"></div>
+      <div class="strength-bar flex-1 bg-gray-200" id="s3"></div>
+      <div class="strength-bar flex-1 bg-gray-200" id="s4"></div>
+    </div>
+    <p class="text-xs text-muted mt-1" id="strength-text">Enter a password</p>
+  </div>
+
+  <!-- Confirm Password -->
+  <div class="mb-6">
+    <label class="block text-sm font-600 text-gray-700 mb-2">Confirm Password</label>
+    <div class="input-wrap">
+      <i data-lucide="lock" class="input-icon w-4 h-4"></i>
+      <input type="password" name="confirm_password" id="pw-confirm"
+        class="form-input" placeholder="Re-enter password" required
+        autocomplete="new-password" oninput="checkMatch()">
+      <button type="button" class="input-icon-right" data-toggle-pw="pw-confirm">
+        <i data-lucide="eye" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <p class="text-xs mt-1 hidden" id="match-msg"></p>
+  </div>
+
+  <!-- Terms -->
+  <div class="flex items-start gap-3 mb-6">
+    <input type="checkbox" name="terms" id="terms" required class="mt-0.5 w-4 h-4 accent-green-600">
+    <label for="terms" class="text-sm text-gray-600 cursor-pointer leading-snug">
+      I agree to the <a href="#" class="text-primary font-600 hover:underline">Terms of Service</a>
+      and <a href="#" class="text-primary font-600 hover:underline">Privacy Policy</a>
+    </label>
+  </div>
+
+  <button type="submit" class="btn-primary" id="reg-btn">Create Account</button>
+</form>
+
+<div class="flex items-center gap-3 my-6">
+  <div class="flex-1 h-px bg-border"></div>
+  <span class="text-xs text-muted font-500">OR</span>
+  <div class="flex-1 h-px bg-border"></div>
+</div>
+
+<p class="text-center text-sm text-gray-600">
+  Already have an account?
+  <a href="/login" class="text-primary font-700 hover:underline ml-1">Sign in</a>
+</p>
+
+<script>
+function checkStrength(pw) {
+  let score = 0;
+  if (pw.length >= 6)  score++;
+  if (pw.length >= 10) score++;
+  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+  if (/[0-9!@#$%^&*]/.test(pw)) score++;
+
+  const bars   = [document.getElementById('s1'), document.getElementById('s2'), document.getElementById('s3'), document.getElementById('s4')];
+  const colors = ['#EF4444','#F59E0B','#3B82F6','#16A34A'];
+  const labels = ['Too weak','Weak','Good','Strong 💪'];
+
+  bars.forEach((b, i) => {
+    b.style.background = i < score ? colors[score - 1] : '#E5E7EB';
+  });
+
+  const txt = document.getElementById('strength-text');
+  txt.textContent = pw.length === 0 ? 'Enter a password' : labels[score - 1] || 'Too weak';
+  txt.style.color = pw.length === 0 ? '#94A3B8' : colors[score - 1] || '#EF4444';
+}
+
+function checkMatch() {
+  const pw  = document.getElementById('pw-reg').value;
+  const cpw = document.getElementById('pw-confirm').value;
+  const msg = document.getElementById('match-msg');
+  if (!cpw) { msg.classList.add('hidden'); return; }
+  msg.classList.remove('hidden');
+  if (pw === cpw) {
+    msg.textContent = '✅ Passwords match';
+    msg.style.color = '#16A34A';
+  } else {
+    msg.textContent = '❌ Passwords do not match';
+    msg.style.color = '#EF4444';
+  }
+}
+
+document.getElementById('reg-form').addEventListener('submit', function(e) {
+  const pw  = document.getElementById('pw-reg').value;
+  const cpw = document.getElementById('pw-confirm').value;
+  if (pw !== cpw) {
+    e.preventDefault();
+    showToast('❌ Passwords do not match', '#EF4444');
+    return;
+  }
+  const btn = document.getElementById('reg-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:flex;align-items:center;justify-content:center;gap:8px"><svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Creating account…</span>';
+});
+</script>
+{% endblock %}

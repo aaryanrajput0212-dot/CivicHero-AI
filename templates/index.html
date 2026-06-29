@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+{% block title %}CivicHero AI — Together, we can build a better city{% endblock %}
+
+{% block content %}
+<div class="p-6 space-y-6">
+
+  <!-- ══ HERO SECTION ══════════════════════════ -->
+  <div class="bg-white rounded-xl2 border border-border shadow-card overflow-hidden" data-aos="fade-up">
+    <div class="flex items-center justify-between p-8 gap-6">
+
+      <!-- Left: Text -->
+      <div class="flex-1 min-w-0">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-bg text-primary text-xs font-600 rounded-full mb-4">
+          <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+          AI-Powered Civic Platform · Bengaluru
+        </div>
+        <h1 class="font-display text-4xl font-800 text-gray-900 leading-tight mb-3">
+          Together, we can build<br>
+          a <span class="text-primary">better city</span>
+        </h1>
+        <p class="text-gray-500 text-base leading-relaxed mb-6 max-w-md">
+          Report issues, track progress and let AI help us solve problems faster.
+          Join 1,340+ citizens making Bengaluru better every day.
+        </p>
+        <div class="flex items-center gap-3 flex-wrap">
+          <a href="/report" class="btn-primary inline-flex items-center gap-2">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            Report an Issue
+          </a>
+          <a href="/dashboard" class="btn-outline inline-flex items-center gap-2">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            View Dashboard
+          </a>
+        </div>
+      </div>
+
+      <!-- Right: Smart City Illustration -->
+      <div class="hidden lg:flex flex-shrink-0 w-80 h-52 items-center justify-center relative">
+        <div class="city-illustration">
+          <!-- SVG Smart City -->
+          <svg viewBox="0 0 340 210" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+            <!-- Sky bg -->
+            <rect width="340" height="210" fill="#F0FDF4" rx="16"/>
+            <!-- Sun -->
+            <circle cx="280" cy="40" r="24" fill="#FEF9C3" opacity="0.8"/>
+            <circle cx="280" cy="40" r="16" fill="#FDE047"/>
+            <!-- Clouds -->
+            <ellipse cx="60" cy="35" rx="30" ry="14" fill="white" opacity="0.9"/>
+            <ellipse cx="80" cy="30" rx="22" ry="12" fill="white" opacity="0.9"/>
+            <!-- Buildings -->
+            <!-- Tall building 1 -->
+            <rect x="30" y="80" width="44" height="110" fill="#DCFCE7" rx="4"/>
+            <rect x="30" y="72" width="44" height="16" fill="#16A34A" rx="3"/>
+            <rect x="38" y="92" width="8" height="10" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="52" y="92" width="8" height="10" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="38" y="108" width="8" height="10" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="52" y="108" width="8" height="10" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="38" y="124" width="8" height="10" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="52" y="124" width="8" height="10" fill="#16A34A" rx="1" opacity="0.5"/>
+            <!-- Medium building -->
+            <rect x="86" y="100" width="36" height="90" fill="#BBF7D0" rx="4"/>
+            <rect x="86" y="93" width="36" height="12" fill="#22C55E" rx="3"/>
+            <rect x="93" y="110" width="7" height="8" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="106" y="110" width="7" height="8" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="93" y="126" width="7" height="8" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="106" y="126" width="7" height="8" fill="#16A34A" rx="1" opacity="0.5"/>
+            <!-- Tall center building -->
+            <rect x="134" y="60" width="52" height="130" fill="#DCFCE7" rx="4"/>
+            <rect x="134" y="50" width="52" height="16" fill="#15803D" rx="3"/>
+            <rect x="156" y="38" width="8" height="16" fill="#16A34A" rx="2"/>
+            <rect x="143" y="72" width="10" height="12" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="159" y="72" width="10" height="12" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="175" y="72" width="10" height="12" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="143" y="90" width="10" height="12" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="159" y="90" width="10" height="12" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="175" y="90" width="10" height="12" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="143" y="108" width="10" height="12" fill="#2563EB" rx="1" opacity="0.4"/>
+            <rect x="159" y="108" width="10" height="12" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="175" y="108" width="10" height="12" fill="#16A34A" rx="1" opacity="0.5"/>
+            <!-- Right buildings -->
+            <rect x="198" y="90" width="40" height="100" fill="#BBF7D0" rx="4"/>
+            <rect x="198" y="82" width="40" height="12" fill="#22C55E" rx="3"/>
+            <rect x="206" y="100" width="8" height="10" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="222" y="100" width="8" height="10" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="206" y="116" width="8" height="10" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="222" y="116" width="8" height="10" fill="#16A34A" rx="1" opacity="0.5"/>
+            <rect x="250" y="110" width="30" height="80" fill="#DCFCE7" rx="4"/>
+            <rect x="250" y="104" width="30" height="10" fill="#16A34A" rx="3"/>
+            <!-- Ground -->
+            <rect x="0" y="190" width="340" height="20" fill="#DCFCE7"/>
+            <rect x="0" y="188" width="340" height="4" fill="#16A34A" opacity="0.3"/>
+            <!-- Road -->
+            <rect x="0" y="190" width="340" height="20" fill="#E2E8F0"/>
+            <rect x="80" y="197" width="24" height="3" fill="white" rx="2" opacity="0.7"/>
+            <rect x="140" y="197" width="24" height="3" fill="white" rx="2" opacity="0.7"/>
+            <rect x="200" y="197" width="24" height="3" fill="white" rx="2" opacity="0.7"/>
+            <!-- Trees -->
+            <circle cx="22" cy="182" r="10" fill="#22C55E"/>
+            <rect x="20" y="188" width="4" height="12" fill="#15803D"/>
+            <circle cx="310" cy="182" r="8" fill="#22C55E"/>
+            <rect x="308" y="188" width="4" height="12" fill="#15803D"/>
+            <!-- People -->
+            <circle cx="110" cy="183" r="5" fill="#16A34A"/>
+            <rect x="107" y="188" width="6" height="10" fill="#2563EB" rx="2"/>
+            <circle cx="230" cy="183" r="5" fill="#F59E0B"/>
+            <rect x="227" y="188" width="6" height="10" fill="#7C3AED" rx="2"/>
+            <circle cx="175" cy="183" r="5" fill="#EF4444"/>
+            <rect x="172" y="188" width="6" height="10" fill="#16A34A" rx="2"/>
+            <!-- Map pin indicator -->
+            <circle cx="160" cy="65" r="8" fill="#EF4444" opacity="0.9"/>
+            <circle cx="160" cy="65" r="4" fill="white"/>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ STAT CARDS ════════════════════════════ -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" data-aos="fade-up" data-aos-delay="50">
+
+    <div class="stat-card group">
+      <div class="flex items-center justify-between mb-3">
+        <div class="stat-icon bg-secondary-bg text-secondary-DEFAULT">
+          <i data-lucide="file-text" class="w-5 h-5"></i>
+        </div>
+        <span class="text-xs font-600 text-green-600 bg-green-50 px-2 py-0.5 rounded-full">↑ +12%</span>
+      </div>
+      <div class="stat-number" data-count="{{ stats.total }}">0</div>
+      <div class="stat-label">Issues Reported</div>
+    </div>
+
+    <div class="stat-card group">
+      <div class="flex items-center justify-between mb-3">
+        <div class="stat-icon bg-primary-bg text-primary">
+          <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+        </div>
+        <span class="text-xs font-600 text-green-600 bg-green-50 px-2 py-0.5 rounded-full">↑ +8%</span>
+      </div>
+      <div class="stat-number text-primary" data-count="{{ stats.resolved }}">0</div>
+      <div class="stat-label">Resolved</div>
+    </div>
+
+    <div class="stat-card group">
+      <div class="flex items-center justify-between mb-3">
+        <div class="stat-icon bg-warning/10 text-warning">
+          <i data-lucide="clock" class="w-5 h-5"></i>
+        </div>
+        <span class="text-xs font-600 text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">Active</span>
+      </div>
+      <div class="stat-number text-warning" data-count="{{ stats.in_progress }}">0</div>
+      <div class="stat-label">In Progress</div>
+    </div>
+
+    <div class="stat-card group">
+      <div class="flex items-center justify-between mb-3">
+        <div class="stat-icon bg-accent-bg text-accent">
+          <i data-lucide="cpu" class="w-5 h-5"></i>
+        </div>
+        <span class="text-xs font-600 text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">Gemini</span>
+      </div>
+      <div class="stat-number text-accent" data-count="{{ stats.ai_accuracy }}">0</div>
+      <div class="stat-label">AI Accuracy %</div>
+    </div>
+
+  </div>
+
+  <!-- ══ MAP + RECENT ISSUES ═══════════════════ -->
+  <div class="grid lg:grid-cols-5 gap-4" data-aos="fade-up" data-aos-delay="100">
+
+    <!-- Map: 3 cols -->
+    <div class="lg:col-span-3 bg-white rounded-xl2 border border-border shadow-card overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div class="flex items-center gap-2">
+          <i data-lucide="map" class="w-4 h-4 text-primary"></i>
+          <h2 class="font-600 text-gray-900 text-sm">Live Issue Map</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="filterMap('all')"    class="filter-chip active" id="chip-all">All</button>
+          <button onclick="filterMap('Pothole')" class="filter-chip" id="chip-Pothole">Pothole</button>
+          <button onclick="filterMap('Water')"   class="filter-chip" id="chip-Water">Leak</button>
+          <button onclick="filterMap('Garbage')" class="filter-chip" id="chip-Garbage">Garbage</button>
+          <button onclick="filterMap('Streetlight')" class="filter-chip" id="chip-Streetlight">Streetlight</button>
+        </div>
+      </div>
+      <div id="home-map" class="w-full h-72 bg-gray-100 relative">
+        <!-- Map loads via JS -->
+        <div class="flex items-center justify-center h-full text-gray-400">
+          <div class="text-center">
+            <i data-lucide="map-pin" class="w-8 h-8 mx-auto mb-2 text-primary"></i>
+            <p class="text-sm font-500">Loading map…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Issues: 2 cols -->
+    <div class="lg:col-span-2 bg-white rounded-xl2 border border-border shadow-card overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div class="flex items-center gap-2">
+          <i data-lucide="activity" class="w-4 h-4 text-primary"></i>
+          <h2 class="font-600 text-gray-900 text-sm">Recent Issues</h2>
+        </div>
+        <a href="/issues" class="text-xs text-primary font-600 hover:underline">View All</a>
+      </div>
+      <div class="divide-y divide-border">
+        {% for issue in recent_issues %}
+        {% set iss = dict(issue) %}
+        <a href="/issue/{{ iss.id }}" class="flex items-start gap-3 px-4 py-3.5 hover:bg-surface transition-colors group">
+          <div class="w-10 h-10 rounded-xl bg-surface flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+            {{ {'Pothole':'🛣️','Water':'💧','Electricity':'⚡','Sewage':'🌊','Garbage':'🗑️','Parks':'🌳','Construction':'🏗️','Streetlight':'💡','Other':'⚠️'}.get(iss.category,'📋') }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-600 text-gray-900 truncate leading-snug">{{ iss.title[:45] }}{% if iss.title|length > 45 %}…{% endif %}</p>
+            <p class="text-xs text-muted mt-0.5 truncate">{{ iss.location[:35] }}{% if iss.location|length > 35 %}…{% endif %}</p>
+          </div>
+          <div class="flex flex-col items-end gap-1 flex-shrink-0">
+            <span class="status-badge status-{{ iss.status }}">{{ iss.status.replace('_',' ').title() }}</span>
+            <span class="text-xs text-muted">{{ iss.created_at[:10] }}</span>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ AI INSIGHT + LEADERBOARD ══════════════ -->
+  <div class="grid lg:grid-cols-3 gap-4" data-aos="fade-up" data-aos-delay="150">
+
+    <!-- AI Insight: 2 cols -->
+    <div class="lg:col-span-2 bg-white rounded-xl2 border border-border shadow-card p-5">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-6 h-6 bg-accent rounded-lg flex items-center justify-center">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-white"></i>
+            </div>
+            <span class="text-xs font-700 text-accent uppercase tracking-wider">AI Insight · Gemini 2.5 Flash</span>
+          </div>
+          <h3 class="font-600 text-gray-900 text-base mb-1">{{ ai_insight.headline }}</h3>
+          <p class="text-sm text-gray-500 leading-relaxed mb-4">{{ ai_insight.summary }}</p>
+          <div class="flex items-center gap-2">
+            <div class="flex-1 bg-warning/10 rounded-xl p-3">
+              <p class="text-xs font-600 text-warning mb-0.5">⚠️ Risk</p>
+              <p class="text-xs text-gray-600">{{ ai_insight.risk }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2 flex-shrink-0">
+          <span class="priority-badge priority-{{ ai_insight.priority }} text-xs">{{ ai_insight.priority.title() }} Priority</span>
+          <a href="/analytics" class="btn-outline text-xs py-2 px-3 text-center">View Analysis</a>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border">
+        {% for chip in ai_insight.chips %}
+        <button class="text-xs px-3 py-1.5 bg-accent-bg text-accent font-500 rounded-full hover:bg-accent hover:text-white transition-all">{{ chip }}</button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Leaderboard: 1 col -->
+    <div class="bg-white rounded-xl2 border border-border shadow-card overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div class="flex items-center gap-2">
+          <i data-lucide="trophy" class="w-4 h-4 text-warning"></i>
+          <h2 class="font-600 text-gray-900 text-sm">Top Heroes</h2>
+        </div>
+        <a href="/community" class="text-xs text-primary font-600 hover:underline">View All</a>
+      </div>
+      <div class="divide-y divide-border">
+        {% for user in leaderboard[:5] %}
+        {% set u = dict(user) %}
+        <div class="flex items-center gap-3 px-4 py-3">
+          <span class="text-sm font-700 w-5 text-center {{ 'text-yellow-400' if loop.index==1 else 'text-gray-300' if loop.index==2 else 'text-orange-400' if loop.index==3 else 'text-muted' }}">
+            {{ '🥇' if loop.index==1 else '🥈' if loop.index==2 else '🥉' if loop.index==3 else loop.index }}
+          </span>
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary-DEFAULT flex items-center justify-center text-white font-700 text-xs flex-shrink-0">
+            {{ u.name[0] }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-600 text-gray-900 truncate">{{ u.name }}</p>
+            <p class="text-xs text-muted">{{ u.badge }}</p>
+          </div>
+          <span class="text-sm font-700 text-primary">{{ u.points }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// Animated counters
+document.querySelectorAll('.stat-number[data-count]').forEach(el => {
+  const target = parseInt(el.dataset.count);
+  let current  = 0;
+  const step   = Math.max(1, Math.ceil(target / 60));
+  const timer  = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = current.toLocaleString() + (el.dataset.suffix || '');
+    if (current >= target) clearInterval(timer);
+  }, 20);
+});
+
+// Home Map
+window.issuesData = {{ all_issues_json|safe }};
+initHomeMap();
+
+function initHomeMap() {
+  const apiKey = "{{ config.get('HERE_API_KEY', '') }}" || "";
+  const mapEl  = document.getElementById('home-map');
+  if (!mapEl) return;
+
+  // Use Leaflet fallback (open source, always works)
+  const script = document.createElement('script');
+  script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  document.head.appendChild(script);
+
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  document.head.appendChild(link);
+
+  script.onload = () => {
+    mapEl.innerHTML = '';
+    const map = L.map('home-map', { zoomControl: true }).setView([12.9352, 77.6245], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap',
+      maxZoom: 18,
+    }).addTo(map);
+
+    const colorMap = { critical: '#EF4444', high: '#F59E0B', medium: '#3B82F6', low: '#22C55E', resolved: '#16A34A' };
+
+    window._allMarkers = [];
+    window._mapInstance = map;
+
+    (window.issuesData || []).forEach(issue => {
+      if (!issue.lat || !issue.lng) return;
+      const color = issue.status === 'resolved' ? colorMap.resolved : (colorMap[issue.priority] || '#3B82F6');
+      const icon  = L.divIcon({
+        html: `<div style="background:${color};width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">
+                 <div style="transform:rotate(45deg);color:white;font-size:10px;font-weight:700;text-align:center;line-height:1;">${issue.priority === 'critical' ? '!' : ''}</div>
+               </div>`,
+        iconSize: [30, 30], iconAnchor: [15, 30], className: '',
+      });
+      const marker = L.marker([issue.lat, issue.lng], { icon })
+        .addTo(map)
+        .bindPopup(`
+          <div style="font-family:Inter,sans-serif;min-width:200px;padding:4px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:4px;line-height:1.3">${issue.title}</div>
+            <div style="font-size:11px;color:#64748b;margin-bottom:6px">📍 ${issue.location}</div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span style="background:${color};color:white;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px">${issue.priority}</span>
+              <span style="background:#f1f5f9;color:#475569;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px">${issue.status}</span>
+            </div>
+            <a href="/issue/${issue.id}" style="display:block;margin-top:8px;font-size:11px;color:#16A34A;font-weight:600;text-decoration:none">View Details →</a>
+          </div>
+        `, { maxWidth: 250 });
+      marker._category = issue.category;
+      marker._status   = issue.status;
+      window._allMarkers.push(marker);
+    });
+  };
+}
+
+let activeChip = 'all';
+function filterMap(cat) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  const el = document.getElementById('chip-' + cat);
+  if (el) el.classList.add('active');
+  activeChip = cat;
+
+  if (!window._allMarkers || !window._mapInstance) return;
+  window._allMarkers.forEach(m => {
+    if (cat === 'all' || m._category === cat) {
+      window._mapInstance.addLayer(m);
+    } else {
+      window._mapInstance.removeLayer(m);
+    }
+  });
+}
+</script>
+{% endblock %}

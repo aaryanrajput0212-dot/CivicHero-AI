@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CivicHero AI{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#16A34A', light: '#22C55E', dark: '#15803D', bg: '#F0FDF4' },
+            secondary: { DEFAULT: '#2563EB', bg: '#EFF6FF' },
+            accent: { DEFAULT: '#7C3AED', bg: '#F5F3FF' },
+            surface: '#F8FAFC', border: '#E2E8F0', muted: '#94A3B8',
+          },
+          fontFamily: { sans: ['Inter','sans-serif'], display: ['Poppins','sans-serif'] },
+          borderRadius: { xl2: '20px' },
+          boxShadow: { card: '0 1px 3px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.06)', green: '0 4px 14px rgba(22,163,74,0.3)' }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .form-input {
+      width: 100%; padding: 11px 14px 11px 42px;
+      border: 1.5px solid #E2E8F0; border-radius: 12px;
+      font-size: 0.9rem; color: #111827; background: white;
+      outline: none; transition: all .15s;
+    }
+    .form-input:focus { border-color: #16A34A; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+    .form-input.no-icon { padding-left: 14px; }
+    .input-wrap { position: relative; }
+    .input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #94A3B8; }
+    .input-icon-right { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); color: #94A3B8; cursor: pointer; }
+    .btn-primary {
+      width: 100%; padding: 12px; background: #16A34A; color: white;
+      border: none; border-radius: 12px; font-weight: 600; font-size: 0.95rem;
+      cursor: pointer; transition: all .18s; box-shadow: 0 4px 14px rgba(22,163,74,0.25);
+    }
+    .btn-primary:hover { background: #15803D; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(22,163,74,0.35); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .strength-bar { height: 4px; border-radius: 2px; transition: all .3s; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    .fade-in { animation: fadeIn .4s ease forwards; }
+    .flash-success { background:#D1FAE5; color:#065F46; border-left:4px solid #16A34A; }
+    .flash-error   { background:#FEE2E2; color:#B91C1C; border-left:4px solid #EF4444; }
+    .flash-info    { background:#DBEAFE; color:#1E40AF; border-left:4px solid #2563EB; }
+  </style>
+</head>
+<body class="bg-surface min-h-screen">
+
+<!-- Split Layout -->
+<div class="min-h-screen flex">
+
+  <!-- Left Panel — Branding -->
+  <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-dark via-primary to-green-400 flex-col justify-between p-12 relative overflow-hidden">
+
+    <!-- Background decoration -->
+    <div class="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -translate-y-20 translate-x-20"></div>
+    <div class="absolute bottom-0 left-0 w-60 h-60 bg-white/5 rounded-full translate-y-20 -translate-x-10"></div>
+    <div class="absolute top-1/2 left-1/2 w-40 h-40 bg-white/5 rounded-full"></div>
+
+    <!-- Logo -->
+    <div class="flex items-center gap-3 relative z-10">
+      <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+        <i data-lucide="shield" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="font-display font-800 text-white text-xl tracking-tight">CIVICHERO AI</span>
+    </div>
+
+    <!-- Main Content -->
+    <div class="relative z-10">
+      <h1 class="font-display text-4xl font-800 text-white leading-tight mb-6">
+        Together, we can<br>build a <span class="text-yellow-300">better city</span>
+      </h1>
+      <p class="text-white/80 text-lg leading-relaxed mb-8">
+        Report civic issues, track progress, and let AI help communities solve problems faster.
+      </p>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-3 gap-4">
+        {% for num, label in [('1,340+','Active Citizens'),('247','Issues Tracked'),('92%','AI Accuracy')] %}
+        <div class="bg-white/10 backdrop-blur rounded-xl p-4 text-center">
+          <p class="font-display font-800 text-white text-xl">{{ num }}</p>
+          <p class="text-white/70 text-xs mt-1">{{ label }}</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Testimonial -->
+      <div class="mt-8 bg-white/10 backdrop-blur rounded-xl p-5">
+        <p class="text-white/90 text-sm italic leading-relaxed">"CivicHero AI helped us get the pothole on our street fixed in 48 hours. The AI routing to the right department made all the difference!"</p>
+        <div class="flex items-center gap-3 mt-3">
+          <div class="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center font-700 text-white text-sm">A</div>
+          <div>
+            <p class="text-white font-600 text-sm">Aaryan Kumar</p>
+            <p class="text-white/60 text-xs">Community Champion · Bengaluru</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="text-white/50 text-xs relative z-10">© 2026 CivicHero AI · Vibe2Ship Hackathon</p>
+  </div>
+
+  <!-- Right Panel — Form -->
+  <div class="flex-1 flex items-center justify-center p-6 lg:p-12">
+    <div class="w-full max-w-md fade-in">
+
+      <!-- Mobile Logo -->
+      <div class="flex lg:hidden items-center gap-2.5 mb-8">
+        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+          <i data-lucide="shield" class="w-4 h-4 text-white"></i>
+        </div>
+        <span class="font-display font-800 text-gray-900 text-lg">CIVICHERO AI</span>
+      </div>
+
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for cat, msg in messages %}
+          <div class="flash-{{ cat }} flex items-start gap-3 p-4 rounded-xl mb-5 text-sm font-500">
+            <i data-lucide="{{ 'check-circle' if cat == 'success' else 'alert-circle' if cat == 'error' else 'info' }}" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
+            <span class="flex-1">{{ msg }}</span>
+          </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block form %}{% endblock %}
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+  <div id="toast-inner" class="px-5 py-3.5 rounded-2xl text-sm font-500 text-white translate-y-20 opacity-0 transition-all duration-300 min-w-[260px] text-center" style="background:#111827;box-shadow:0 8px 32px rgba(0,0,0,0.25)"></div>
+</div>
+
+<script>
+lucide.createIcons();
+function showToast(msg, bg) {
+  const el = document.getElementById('toast-inner');
+  el.textContent = msg;
+  el.style.background = bg || '#111827';
+  el.style.transform = 'translateY(0)';
+  el.style.opacity = '1';
+  setTimeout(() => { el.style.transform = 'translateY(80px)'; el.style.opacity = '0'; }, 3000);
+}
+
+// Toggle password visibility
+document.querySelectorAll('[data-toggle-pw]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = document.getElementById(btn.dataset.togglePw);
+    if (!input) return;
+    const isText = input.type === 'text';
+    input.type = isText ? 'password' : 'text';
+    btn.innerHTML = isText
+      ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+      : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  });
+});
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
