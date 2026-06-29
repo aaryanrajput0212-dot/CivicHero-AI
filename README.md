@@ -231,7 +231,7 @@ civichero-ai/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/aaryanrajput/civichero-ai.git
+git clone https://github.com/aaryanrajput/Civichero-Ai.git
 cd civichero-ai
 
 # 2. Create virtual environment
@@ -378,6 +378,7 @@ Distributed under the **MIT License**.
 **Aaryan Rajput**
 - GitHub: [@aaryanrajput](https://github.com/aaryanrajput)
 - Email: aaryanrajput0212@gmail.com
+- Linkedin:www.linkedin.com/in/aaryan-rajput-63abb1384
 
 ---
 
